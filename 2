@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GeoGlow Skincare Matcher</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff5f5;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .quiz-container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: #fef9f6;
+      border-radius: 20px;
+      padding: 25px 30px;
+      box-shadow: 0 6px 20px rgba(245, 100, 100, 0.2);
+    }
+    .quiz-container h2 {
+      color: #b23145;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .quiz-container p {
+      text-align: center;
+      font-size: 16px;
+      color: #903c46;
+      margin-bottom: 25px;
+    }
+    .quiz-container label {
+      font-weight: 600;
+      display: block;
+      margin: 15px 0 6px;
+      color: #903c46;
+    }
+    .quiz-container select,
+    #userEmail {
+      width: 100%;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #b23145;
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .quiz-container button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 12px;
+      background: #b23145;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .quiz-container button:hover {
+      background: #8a2535;
+    }
+    .quiz-result {
+      margin-top: 30px;
+      font-size: 16px;
+      color: #b23145;
+      font-weight: 700;
+      text-align: center;
+      display: none;
+    }
+    .floating-cta {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #b23145;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+      z-index: 9999;
+    }
+    #thankYouPopup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff9f0;
+      border: 2px solid #b23145;
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      color: #b23145;
+      font-weight: 600;
+      z-index: 99999;
+      display: none;
+    }
+    @media only screen and (max-width: 768px) {
+      .quiz-container {
+        padding: 20px;
+        margin: 30px 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div style="text-align: right; padding: 15px 20px; background: #fff0f0; border-bottom: 1px solid #eccccc;">
+    <button onclick="toggleLanguage()" style="background:#903c46; color:#fff; padding:8px 16px; border:none; border-radius:20px; cursor:pointer; font-size:14px;">
+      🌐 Switch Language / Cambiar Idioma
+    </button>
+  </div>
+
+  <div class="quiz-container">
+    <h2>✨ GeoGlow Skincare Match ✨</h2>
+    <p>Your personalized skincare recommendation based on your region, skin type, and season 🌍✨</p>
+    <form id="usaSkinMatchForm">
+      <label for="skinType">What is your skin type?</label>
+      <select id="skinType" required>
+        <option value="" disabled selected>Select your skin type</option>
+        <option value="dry">Dry</option>
+        <option value="oily">Oily</option>
+        <option value="combination">Combination</option>
+        <option value="sensitive">Sensitive</option>
+        <option value="normal">Normal</option>
+      </select>
+      <label for="region">Which U.S. region best matches your climate?</label>
+      <select id="region" required>
+        <option value="" disabled selected>Select your region</option>
+        <option value="southeast">Southeast</option>
+        <option value="southwest">Southwest</option>
+        <option value="northeast">Northeast</option>
+        <option value="midwest">Midwest</option>
+        <option value="westcoast">West Coast</option>
+        <option value="mountain">Mountain</option>
+      </select>
+      <label for="season">Which season are you shopping for?</label>
+      <select id="season" required>
+        <option value="" disabled selected>Select a season</option>
+        <option value="summer">Summer</option>
+        <option value="winter">Winter</option>
+      </select>
+      <button type="submit">Get My Match</button>
+    </form>
+    <div id="emailGate" style="display:none;">
+      <label for="userEmail">📧 Enter your email to reveal your skincare match:</label>
+      <input type="email" id="userEmail" required placeholder="you@example.com">
+      <button onclick="unlockResult()">Unlock My Match</button>
+    </div>
+    <div class="quiz-result" id="usaQuizResult"></div>
+  </div>
+
+  <div id="thankYouPopup">🎉 Thank you! Check your personalized recommendation below.</div>
+  <div class="floating-cta" onclick="scrollToQuiz()">✨ Start Your Match</div>
+
+  <script>
+    const combinations = {
+      "dry_southeast": {
+        title: "HydraMist Lightweight Gel",
+        img: "https://via.placeholder.com/300x200?text=HydraMist+Gel",
+        link: "https://amazon.com/hydramist",
+        seasonal: {
+          summer: { desc: "Keeps dry skin cool and quenched during humid summers." },
+          winter: { desc: "Gentle moisture barrier for mild winter climates." }
+        }
+      },
+      "oily_southwest": {
+        title: "MatteBalance SPF Serum",
+        img: "https://via.placeholder.com/300x200?text=MatteBalance+SPF",
+        link: "https://shopify.com/mattebalance",
+        seasonal: {
+          summer: { desc: "Protects and controls shine in desert heat." },
+          winter: { desc: "Lightweight SPF without clogging pores." }
+        }
+      }
+    };
+
+    function toggleLanguage() {
+      alert('Language switching will be added soon.');
+    }
+
+    function scrollToQuiz() {
+      document.querySelector('.quiz-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.getElementById('usaSkinMatchForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const skinType = document.getElementById('skinType').value;
+      const region = document.getElementById('region').value;
+      const season = document.getElementById('season').value;
+      const key = `${skinType}_${region}`;
+      const product = combinations[key];
+
+      if (product && product.seasonal[season]) {
+        const desc = product.seasonal[season].desc;
+        const recommendation = `🌟 Try our <a href='${product.link}' target='_blank'>${product.title}</a> — ${desc}<br><br>
+          <a href='${product.link}' target='_blank'><img src='${product.img}' style='max-width:100%; border-radius:15px;'></a><br>
+          <a href='${product.link}' target='_blank' style='display:inline-block; background:#e60023; color:white; padding:12px 25px; border-radius:30px;'>🛍️ Shop Now</a>`;
+        document.getElementById('usaQuizResult').innerHTML = recommendation;
+      } else {
+        document.getElementById('usaQuizResult').innerHTML = 'No match found. Please try different options.';
+      }
+
+      document.getElementById('emailGate').style.display = 'block';
+      document.getElementById('usaQuizResult').style.display = 'none';
+    });
+
+    function unlockResult() {
+      const email = document.getElementById('userEmail').value;
+      if (!email || !email.includes('@')) {
+        alert("Please enter a valid email.");
+        return;
+      }
+      localStorage.setItem('userEmailGeoGlow', email);
+      document.getElementById('emailGate').style.display = "none";
+      document.getElementById('usaQuizResult').style.display = "block";
+      document.getElementById('thankYouPopup').style.display = "block";
+      setTimeout(() => {
+        document.getElementById('thankYouPopup').style.display = "none";
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
